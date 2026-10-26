@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>4N71_k1r4_7 | SYSTEM BREACH</title>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #020403;
+  color: #00ff66;
+  font-family: Consolas, monospace;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  opacity: .45;
+}
+
+.scanlines {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    transparent 0px,
+    #00000055 2px,
+    transparent 4px
+  );
+}
+
+.main {
+  position: relative;
+  z-index: 2;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.warning {
+  color: #ff2020;
+  font-size: clamp(18px, 4vw, 38px);
+  font-weight: bold;
+  letter-spacing: 4px;
+  text-shadow: 0 0 15px red;
+  animation: flicker 1.2s infinite;
+}
+
+.logo {
+    width: 500px;
+    max-width: 85vw;
+    max-height: 55vh;
+    object-fit: contain;
+    margin: 15px;
+    filter: drop-shadow(0 0 25px #00ff66);
+    animation: glitch 4s infinite;
+}
+
+.status {
+  color: #ff3030;
+  font-size: 18px;
+  letter-spacing: 3px;
+  text-shadow: 0 0 10px red;
+}
+
+.progress {
+  width: 300px;
+  max-width: 75vw;
+  height: 9px;
+  border: 1px solid #00ff66;
+  margin: 20px;
+  overflow: hidden;
+}
+
+.progress span {
+  display: block;
+  height: 100%;
+  width: 0%;
+  background: #00ff66;
+  box-shadow: 0 0 15px #00ff66;
+  animation: load 8s linear infinite;
+}
+
+.terminal {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  width: min(370px, 85vw);
+  height: 150px;
+  overflow: hidden;
+  border: 1px solid #00ff6680;
+  background: #000c;
+  padding: 12px;
+  font-size: 12px;
+  text-align: left;
+  z-index: 3;
+  box-shadow: 0 0 15px #00ff6630;
+}
+
+.top-right {
+  position: fixed;
+  right: 20px;
+  top: 20px;
+  color: red;
+  font-size: 12px;
+  text-align: right;
+  z-index: 3;
+  animation: flicker 2s infinite;
+}
+
+#hackAlert {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(30, 0, 0, 0.95);
+  color: #ff0000;
+  font: bold clamp(30px, 7vw, 85px) monospace;
+  text-shadow: 0 0 25px red;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  animation: hackBlink 0.15s infinite;
+  pointer-events: none;
+}
+
+@keyframes hackBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
+}
+
+@keyframes flicker {
+  0%, 90%, 100% { opacity: 1; }
+  92%, 96% { opacity: .15; }
+}
+
+@keyframes glitch {
+  0%, 93%, 100% {
+    transform: translate(0);
+  }
+  94% {
+    transform: translate(-5px, 2px);
+  }
+  95% {
+    transform: translate(5px, -2px);
+  }
+  96% {
+    transform: translate(-3px, 0);
+  }
+}
+
+@keyframes load {
+  from { width: 0%; }
+  to { width: 100%; }
+}
+
+@media (max-width: 600px) {
+  .terminal {
+    height: 105px;
+  }
+
+  .logo {
+    max-height: 35vh;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #hackAlert {
+    animation: none;
+  }
+
+  .warning,
+  .logo,
+  .top-right {
+    animation: none;
+  }
+}
+#floatingData {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 4;
+}
+
+.floating-item {
+    position: absolute;
+    bottom: -50px;
+    white-space: nowrap;
+    font-family: Consolas, monospace;
+    font-size: 12px;
+    font-weight: bold;
+    color: #00ff66;
+    text-shadow: 0 0 8px currentColor;
+    opacity: 0;
+    animation: floatUp linear forwards;
+}
+
+.floating-item.danger {
+    color: #ff2020;
+}
+
+.floating-item.warning-ip {
+    color: #00d9ff;
+}
+
+@keyframes floatUp {
+    0% {
+        transform: translateY(0);
+        opacity: 0;
+    }
+
+    10% {
+        opacity: 0.9;
+    }
+
+    85% {
+        opacity: 0.8;
+    }
+
+    100% {
+        transform: translateY(-115vh);
+        opacity: 0;
+    }
+}
+#networkStats {
+  position: fixed;
+  top: 110px;
+  left: 20px;
+  z-index: 8;
+  width: 260px;
+  padding: 14px;
+  background: rgba(0, 10, 5, 0.88);
+  border: 1px solid #00ff66;
+  box-shadow: 0 0 15px #00ff6644;
+  color: #00ff66;
+  font: 12px Consolas, monospace;
+  line-height: 2;
+}
+
+.stats-title {
+  font-weight: bold;
+  color: #00ffff;
+  border-bottom: 1px solid #00ff66;
+  margin-bottom: 8px;
+  letter-spacing: 1px;
+}
+
+.stats-status {
+  color: #00ff66;
+  animation: statusPulse 2s infinite;
+}
+
+#connectionCanvas {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.35;
+}
+
+@keyframes statusPulse {
+  50% { opacity: 0.3; }
+}
+
+@media (max-width: 600px) {
+  #networkStats {
+    top: 95px;
+    left: 10px;
+    width: 190px;
+    padding: 8px;
+    font-size: 10px;
+  }
+}
+</style>
+</head>
+
+<body>
+    <div id="networkStats">
+  <div class="stats-title">LIVE NETWORK MONITOR</div>
+  <div>ACTIVE USERS: <span id="activeUsers">1248</span></div>
+  <div>TRACED IP: <span id="tracedIPs">384</span></div>
+  <div>BLOCKED CONNECTIONS: <span id="blockedConnections">92</span></div>
+  <div class="stats-status">● MONITORING ACTIVE</div>
+</div>
+
+<canvas id="connectionCanvas"></canvas>
+<div id="floatingData"></div>
+<canvas id="matrix"></canvas>
+
+<div class="scanlines"></div>
+
+<div id="hackAlert">SYSTEM HACKED</div>
+
+<div class="top-right">
+  [ CRITICAL ALERT ]<br>
+  FIREWALL: DISABLED<br>
+  SECURITY: COMPROMISED<br>
+  SIMULATION MODE
+</div>
+
+<div class="main">
+
+  <div class="warning">
+    ⚠ ACCESS BREACHED ⚠
+  </div>
+
+  <img
+    src="hacker logo.png"
+    class="logo"
+    alt="Hacker Logo"
+  >
+
+  <div class="status">
+    SYSTEM COMPROMISED
+  </div>
+
+  <div class="progress">
+    <span></span>
+  </div>
+
+  <div id="message">
+    INITIALIZING SYSTEM...
+  </div>
+
+</div>
+
+<div class="terminal" id="terminal"></div>
+
+<script>
+const canvas = document.getElementById("matrix");
+const ctx = canvas.getContext("2d");
+
+let drops = [];
+const fontSize = 15;
+
+function resize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  drops = Array(
+    Math.ceil(canvas.width / fontSize)
+  ).fill(1);
+}
+
+resize();
+
+window.addEventListener("resize", resize);
+
+function drawMatrix() {
+  ctx.fillStyle = "rgba(0,0,0,0.07)";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  ctx.fillStyle = "#00ff66";
+  ctx.font = fontSize + "px monospace";
+
+  drops.forEach((y, i) => {
+    const chars = "01ABCDEF#$@%";
+
+    const char = chars[
+      Math.floor(Math.random() * chars.length)
+    ];
+
+    ctx.fillText(
+      char,
+      i * fontSize,
+      y * fontSize
+    );
+
+    if (
+      y * fontSize > canvas.height &&
+      Math.random() > .975
+    ) {
+      drops[i] = 0;
+    }
+
+    drops[i]++;
+  });
+}
+
+setInterval(drawMatrix, 45);
+
+const logs = [
+  "[SYSTEM] Establishing secure connection...",
+  "[WARNING] Unauthorized access detected",
+  "[SCAN] Checking firewall...",
+  "[ERROR] Firewall protection failed",
+  "[ALERT] Security protocol bypass simulated",
+  "[SYSTEM] Loading encrypted modules...",
+  "[WARNING] Intrusion signature detected",
+  "[STATUS] SYSTEM COMPROMISED",
+  "[SIMULATION] No real systems accessed",
+  "[4N71_k1r4_7] Operation running..."
+];
+
+const terminal = document.getElementById("terminal");
+
+let count = 0;
+
+setInterval(() => {
+  const line = document.createElement("div");
+
+  line.textContent = "> " + logs[count % logs.length];
+
+  line.style.color =
+    count % 3 === 0 ? "#ff3333" : "#00ff66";
+
+  terminal.appendChild(line);
+  terminal.scrollTop = terminal.scrollHeight;
+
+  if (terminal.children.length > 30) {
+    terminal.firstChild.remove();
+  }
+
+  count++;
+}, 650);
+
+const messages = [
+  "INITIALIZING SYSTEM...",
+  "SCANNING SECURITY LAYERS...",
+  "ACCESS OVERRIDE SIMULATED...",
+  "ENCRYPTED SIGNAL DETECTED...",
+  "4N71_k1r4_7 // ACTIVE"
+];
+
+let index = 0;
+
+setInterval(() => {
+  document.getElementById("message").textContent =
+    messages[index++ % messages.length];
+}, 2200);
+
+function showHackAlert() {
+  const alertBox = document.getElementById("hackAlert");
+
+  alertBox.style.display = "flex";
+
+  setTimeout(() => {
+    alertBox.style.display = "none";
+  }, 1500);
+}
+
+setInterval(showHackAlert, 8000);
+const floatingData = document.getElementById("floatingData");
+
+const unknownUsers = [
+    "UNKNOWN_USER",
+    "GHOST_404",
+    "SHADOW_ROOT",
+    "ANONYMOUS_777",
+    "DARK_NODE",
+    "NULL_USER",
+    "HIDDEN_ADMIN",
+    "PHANTOM_X",
+    "BLACK_SIGNAL",
+    "ENCRYPTED_USER",
+    "VOID_999",
+    "UNKNOWN_DEVICE",
+    "ROOT_ACCESS",
+    "GHOST_PROTOCOL",
+    "4N71_K1R4_7"
+];
+
+const fakeIPs = [
+    "192.0.2.14",
+    "192.0.2.87",
+    "198.51.100.23",
+    "198.51.100.99",
+    "203.0.113.17",
+    "203.0.113.64",
+    "203.0.113.201"
+];
+
+function createFloatingData() {
+    const item = document.createElement("div");
+
+    item.className = "floating-item";
+
+    const type = Math.floor(Math.random() * 3);
+
+    if (type === 0) {
+        const user = unknownUsers[
+            Math.floor(Math.random() * unknownUsers.length)
+        ];
+
+        item.textContent = "USER: " + user;
+    }
+
+    if (type === 1) {
+        const ip = fakeIPs[
+            Math.floor(Math.random() * fakeIPs.length)
+        ];
+
+        item.textContent = "UNTRACED IP: " + ip;
+        item.classList.add("warning-ip");
+    }
+
+    if (type === 2) {
+        const alerts = [
+            "ACCESS DENIED",
+            "UNKNOWN CONNECTION",
+            "TRACE FAILED",
+            "SIGNAL LOST",
+            "IDENTITY UNKNOWN",
+            "ENCRYPTED NODE",
+            "CONNECTION TERMINATED"
+        ];
+
+        item.textContent = alerts[
+            Math.floor(Math.random() * alerts.length)
+        ];
+
+        item.classList.add("danger");
+    }
+
+    item.style.left = Math.random() * 95 + "%";
+    item.style.fontSize = (10 + Math.random() * 6) + "px";
+
+    const duration = 5 + Math.random() * 7;
+
+    item.style.animationDuration = duration + "s";
+
+    floatingData.appendChild(item);
+
+    setTimeout(() => {
+        item.remove();
+    }, duration * 1000);
+}
+
+setInterval(createFloatingData, 120);
+let activeUsers = 1248;
+let tracedIPs = 384;
+let blockedConnections = 92;
+
+setInterval(() => {
+  activeUsers = Math.max(
+    0,
+    activeUsers + Math.floor(Math.random() * 21) - 10
+  );
+
+  tracedIPs += Math.floor(Math.random() * 4);
+  blockedConnections += Math.floor(Math.random() * 3);
+
+  document.getElementById("activeUsers").textContent =
+    activeUsers.toLocaleString();
+
+  document.getElementById("tracedIPs").textContent =
+    tracedIPs.toLocaleString();
+
+  document.getElementById("blockedConnections").textContent =
+    blockedConnections.toLocaleString();
+}, 1200);
+
+const connectionCanvas =
+  document.getElementById("connectionCanvas");
+
+const connectionCtx =
+  connectionCanvas.getContext("2d");
+
+let networkNodes = [];
+
+function resizeConnections() {
+  connectionCanvas.width = window.innerWidth;
+  connectionCanvas.height = window.innerHeight;
+
+  networkNodes = Array.from({ length: 25 }, () => ({
+    x: Math.random() * connectionCanvas.width,
+    y: Math.random() * connectionCanvas.height,
+    vx: (Math.random() - 0.5) * 0.6,
+    vy: (Math.random() - 0.5) * 0.6
+  }));
+}
+
+resizeConnections();
+
+window.addEventListener("resize", resizeConnections);
+
+function animateConnections() {
+  const w = connectionCanvas.width;
+  const h = connectionCanvas.height;
+
+  connectionCtx.clearRect(0, 0, w, h);
+
+  networkNodes.forEach((node, i) => {
+    node.x += node.vx;
+    node.y += node.vy;
+
+    if (node.x < 0 || node.x > w) node.vx *= -1;
+    if (node.y < 0 || node.y > h) node.vy *= -1;
+
+    connectionCtx.fillStyle = "#00ff66";
+    connectionCtx.beginPath();
+    connectionCtx.arc(node.x, node.y, 2, 0, Math.PI * 2);
+    connectionCtx.fill();
+
+    for (let j = i + 1; j < networkNodes.length; j++) {
+      const other = networkNodes[j];
+      const distance = Math.hypot(
+        node.x - other.x,
+        node.y - other.y
+      );
+
+      if (distance < 200) {
+        connectionCtx.strokeStyle =
+          `rgba(0,255,102,${1 - distance / 200})`;
+
+        connectionCtx.lineWidth = 0.7;
+        connectionCtx.beginPath();
+        connectionCtx.moveTo(node.x, node.y);
+        connectionCtx.lineTo(other.x, other.y);
+        connectionCtx.stroke();
+      }
+    }
+  });
+
+  requestAnimationFrame(animateConnections);
+}
+
+animateConnections();
+</script>
+
+</body>
+</html>
